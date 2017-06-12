@@ -3141,6 +3141,21 @@ void janus_plugin_notify_event(janus_plugin *plugin, janus_plugin_session *plugi
 }
 
 
+void setrlimit_nofile(int nof)
+{
+    int ret = 0;
+    struct rlimit rl;
+    getrlimit(RLIMIT_NOFILE, &rl);
+    rl.rlim_cur = nof;
+    rl.rlim_max = nof;
+    ret = setrlimit(RLIMIT_NOFILE, &rl);
+    if(ret == 0)
+        JANUS_PRINT("setrlimit_nofile: setrlimit(%d)\n",nof);
+    else
+        g_print("setrlimit_nofile: setrlimit(%d) failed errno=%d => %s\n",nof,errno,strerror(errno));
+}
+
+
 /* Main */
 gint main(int argc, char *argv[])
 {
@@ -3148,6 +3163,9 @@ gint main(int argc, char *argv[])
 	struct rlimit core_limits;
 	core_limits.rlim_cur = core_limits.rlim_max = RLIM_INFINITY;
 	setrlimit(RLIMIT_CORE, &core_limits);
+
+    /* Easylive */
+    setrlimit_nofile(JANUS_NOFILE);
 
 	g_print("Janus commit: %s\n", janus_build_git_sha);
 	g_print("Compiled on:  %s\n\n", janus_build_git_time);
